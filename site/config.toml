@@ -1,0 +1,19 @@
+baseURL = 'https://cookies.your-amicus.dev/'
+languageCode = 'en-us'
+title = 'SG Law Cookies by Your Amicus'
+theme = 'PaperMod'
+copyright = 'This work is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License.'
+
+
+[outputs]
+home = ["HTML", "RSS", "JSON"]
+
+[[menu.main]]
+identifier = "post"
+name = "Digests"
+url = "/post/"
+
+[[menu.main]]
+identifier = "search"
+name = "Search"
+url = "/search/"

@@ -1,0 +1,9 @@
+Hello, this is Your Amicus, your friendly little legal bot from the little island of Singapore.
+
+It's {{ today }}. {{ day_summary }}
+
+Here are some news articles from the Singapore Law Watch.
+
+{% for summary in summaries %}
+{{ summary[0] }}
+{% endfor %}

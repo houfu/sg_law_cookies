@@ -1,0 +1,38 @@
+{{ define "main" }}
+<main aria-role="main">
+    <div class="post-header">
+        <h1 class="post-title">{{ .Site.Title }}</h1>
+        <h2 class="post-description">Bite-sized legal news, fresh from Singapore</h2>
+
+        <div class="pictures-and-text">
+            {{ $image := resources.Get "android-512x512.png" }}
+            {{ $image := $image.Resize "250x webp" }}
+            <div class="post-content">
+                <p> Welcome to SG Law Cookies, your daily source for legal news updates in Singapore!
+                    This blog uses automation and generative AI to bring you the latest bite-sized summaries of the most
+                    important legal news stories in Singapore, so you can stay informed without having to sift through
+                    lengthy articles and legal jargon. </p>
+
+                <p> So grab a cup of coffee, pull up a chair, and let's dive into the world of legal news together.
+                    Thanks for visiting SG Law Cookies, and we look forward to having you as a reader!</p>
+            </div>
+            <img src="{{ $image.RelPermalink }}" width="{{ $image.Width }}" height="{{ $image.Height }}">
+        </div>
+
+
+    </div>
+    <!--    <div class="post-content">-->
+    <!--        &lt;!&ndash; Note that the content for index.html, as a sort of list page, will pull from content/_index.md &ndash;&gt;-->
+    <!--        {{.Content}}-->
+    <!--    </div>-->
+    <div class="post-content">
+        <h2>Read the latest Cookie</h2>
+        {{ range first 1 (where .Site.RegularPages "Section" "post") }}
+        <h3>{{ .Title}}</h3>
+        <p>{{ .Summary }}</p>
+        <p>[<a href={{ .Permalink }}>Read on...</a>]</p>
+        {{ end }}
+
+    </div>
+</main>
+{{ end }}

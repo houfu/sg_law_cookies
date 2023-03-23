@@ -1,0 +1,5 @@
+.pictures-and-text {
+    display: flex;
+    align-items: stretch;
+    gap: 30px;
+}
