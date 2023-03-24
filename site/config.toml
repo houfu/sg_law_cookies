@@ -17,3 +17,7 @@ url = "/post/"
 identifier = "search"
 name = "Search"
 url = "/search/"
+
+[params]
+ShowShareButtons = true
+ShowPostNavLinks = true
