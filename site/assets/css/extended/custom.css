@@ -17,3 +17,28 @@
         margin-bottom: 10px;
     }
 }
+
+.cta-box {
+    background-color: var(--tertiary);
+    border: 1px solid #ddd;
+    padding: 20px;
+    text-align: center;
+}
+
+.cta-box button {
+    background-color: #337ab7;
+    border: none;
+    color: #fff;
+    padding: 10px 20px;
+    text-transform: uppercase;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.cta-box button:hover {
+    background-color: #286090;
+}
+
+.cta-box p {
+    margin-bottom: 10px;
+}
