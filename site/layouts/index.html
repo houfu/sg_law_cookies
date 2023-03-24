@@ -28,7 +28,7 @@
     <div class="post-content">
         <h2>Read the latest Cookie</h2>
         {{ range first 1 (where .Site.RegularPages "Section" "post") }}
-        <h3>{{ .Title}}</h3>
+        <a href={{ .Permalink }}><h3>{{ .Title}}</h3></a>
         <p>{{ .Summary }}</p>
         <p>[<a href={{ .Permalink }}>Read on...</a>]</p>
         {{ end }}

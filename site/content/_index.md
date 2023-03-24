@@ -2,10 +2,6 @@
 
 ## Daily Legal News Updates in Singapore
 
-<p float="left">
-  <img src="/android-512x512.png" width="100" />
-</p>
-
 Welcome to SG Law Cookies, your daily source for legal news updates in Singapore! 
 This blog uses automation and generative AI to bring you the latest  bite-sized summaries of the most important legal 
 news stories in Singapore, so you can stay informed without having to sift through lengthy articles and legal jargon.
