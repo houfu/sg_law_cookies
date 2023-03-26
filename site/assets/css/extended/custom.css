@@ -18,11 +18,29 @@
     }
 }
 
+.disclaimer{
+    background-color: var(--tertiary);
+    border: 1px solid #ddd;
+    padding: 20px;
+}
+
+.disclaimer {
+    margin-bottom: 10px;
+    margin-top: 10px;
+    font-size: small;
+    text-align: justify;
+}
+
 .cta-box {
     background-color: var(--tertiary);
     border: 1px solid #ddd;
     padding: 20px;
     text-align: center;
+}
+
+.cta-box p {
+    margin-bottom: 10px;
+    margin-top: 10px;
 }
 
 .cta-box button {
@@ -41,10 +59,6 @@
     background-color: #286090;
 }
 
-.cta-box p {
-    margin-bottom: 10px;
-    margin-top: 10px;
-}
 
 .cta-box form input {
     min-height: auto;
