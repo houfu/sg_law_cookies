@@ -128,6 +128,19 @@ def main():
             )
         )
 
+    newsletter_template = env.get_template("newsletter_post.jinja2")
+    content = newsletter_template.render(
+        today=datetime.datetime.today(),
+        summaries=summaries,
+        day_summary=day_summary
+    )
+    title = f"SG Law Cookies ({datetime.datetime.today().strftime('%d %B %Y')})"
+    requests.post(
+        "https://cookies.your-amicus.app/sg-law-cookies-func/email_support/send_newsletter",
+        json={"content": content, "title": title},
+        headers={"Content-Type": "application/json"}
+    )
+
 
 if __name__ == '__main__':
     main()
