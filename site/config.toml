@@ -18,6 +18,11 @@ identifier = "search"
 name = "Search"
 url = "/search/"
 
+[[menu.main]]
+identifier = "privacy"
+name = "Privacy Policy"
+url = "/privacy/"
+
 [params]
 ShowShareButtons = true
 ShowPostNavLinks = true
