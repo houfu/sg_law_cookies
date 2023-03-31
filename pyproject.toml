@@ -13,7 +13,7 @@ beautifulsoup4 = "^4.11.2"
 lxml = "^4.9.2"
 requests = "^2.28.2"
 jinja2 = "^3.1.2"
-langchain = "^0.0.115"
+langchain = "^0.0.127"
 openai = "^0.27.2"
 tiktoken = "^0.3.2"
 

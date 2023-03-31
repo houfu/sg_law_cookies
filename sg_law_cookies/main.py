@@ -32,6 +32,8 @@ def check_if_article_should_be_included(article: NewsArticle, scrape_date: datet
     """
     if article.category == "Singapore Law Watch":
         return False
+    if article.title.startswith('ADV: '):
+        return False
     today = scrape_date
     if today.weekday() == 0:
         friday = today - datetime.timedelta(days=2)
@@ -76,7 +78,7 @@ def get_summaries(articles: list[NewsArticle]):
     for article in articles:
         r = requests.get(article.source_link)
         soup = BeautifulSoup(r.content, "html5lib")
-        article_content = "\n".join([p.text for p in soup.article.find_all('p')])
+        article_content = soup.article.h1.text + "\n" + "\n".join([p.text for p in soup.article.find_all('p')])
 
         messages = article_summary_prompt.format_prompt(article=article_content).to_messages()
 
