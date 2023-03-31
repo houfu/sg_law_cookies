@@ -19,19 +19,20 @@ class NewsArticle:
         self.date = datetime.datetime.strptime(article.pubDate.text, "%d %b %Y %H:%M:%S")
 
 
-def check_if_article_should_be_included(article: NewsArticle) -> bool:
+def check_if_article_should_be_included(article: NewsArticle, scrape_date: datetime.date) -> bool:
     """
     Checks if an article should be included in the list to be processed by:
 
     * Removing articles which are advertisements
     * Removing articles which are in the past (i.e. not today). If it is a weekend today, return Friday's articles.
 
+    :param scrape_date:
     :param article:
     :return:
     """
     if article.category == "Singapore Law Watch":
         return False
-    today = datetime.datetime.today()
+    today = scrape_date
     if today.weekday() == 0:
         friday = today - datetime.timedelta(days=2)
         return article.date.year == friday.year and article.date.day > friday.day \
@@ -40,7 +41,7 @@ def check_if_article_should_be_included(article: NewsArticle) -> bool:
         return article.date.year == today.year and article.date.day == today.day and article.date.month == today.month
 
 
-def scrape_news_articles_today() -> list[NewsArticle]:
+def scrape_news_articles_today(scrape_date: datetime.date) -> list[NewsArticle]:
     """
     Returns a list of today's news articles from Singapore law watch.
     :return:
@@ -53,7 +54,8 @@ def scrape_news_articles_today() -> list[NewsArticle]:
 
     news_articles = [NewsArticle(article) for article in soup.find_all('item')]
 
-    return [article for article in news_articles if check_if_article_should_be_included(article)]
+    return [article for article in news_articles if
+            check_if_article_should_be_included(article, scrape_date)]
 
 
 def get_summaries(articles: list[NewsArticle]):
@@ -107,12 +109,13 @@ def main():
     )
     template = env.get_template('template.jinja2')
     print("Getting summaries.")
-    summaries, day_summary = get_summaries(scrape_news_articles_today())
+    scrape_date = datetime.datetime.today()
+    summaries, day_summary = get_summaries(scrape_news_articles_today(scrape_date))
     if len(summaries) == 0:
         raise Exception("No summaries were found.")
     print("Summaries completed, rendering template.")
     print(template.render(
-        today=datetime.datetime.today().strftime("%d %B %Y"),
+        today=scrape_date.strftime("%d %B %Y"),
         summaries=summaries,
         day_summary=day_summary
     ))
@@ -122,7 +125,7 @@ def main():
               mode='x') as file:
         file.write(
             blog_template.render(
-                today=datetime.datetime.today(),
+                today=scrape_date,
                 summaries=summaries,
                 day_summary=day_summary
             )
@@ -130,11 +133,11 @@ def main():
 
     newsletter_template = env.get_template("newsletter_post.jinja2")
     content = newsletter_template.render(
-        today=datetime.datetime.today(),
+        today=scrape_date,
         summaries=summaries,
         day_summary=day_summary
     )
-    title = f"SG Law Cookies ({datetime.datetime.today().strftime('%d %B %Y')})"
+    title = f"SG Law Cookies ({scrape_date.strftime('%d %B %Y')})"
     requests.post(
         "https://cookies.your-amicus.app/sg-law-cookies-func/email_support/send_newsletter",
         json={"content": content, "title": title},
