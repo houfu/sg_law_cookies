@@ -1,0 +1,52 @@
+{{- define "main" }}
+
+<header class="page-header">
+    <h1>
+        Subscribe to SG Law Cookies
+    </h1>
+</header>
+
+<div class="post-content">
+    <p id="subscribeResult">Wait for result</p>
+</div>
+{{- if .Content }}
+<div class="post-content">
+    {{- if not (.Param "disableAnchoredHeadings") }}
+    {{- partial "anchored_headings.html" .Content -}}
+    {{- else }}{{ .Content }}{{ end }}
+</div>
+{{- end }}
+<script>
+    window.onload = function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        const new_member = urlParams.get('new_member');
+        const hash = urlParams.get('hash');
+        if (new_member !== null && hash !== null) {
+            const json = JSON.stringify({'new_member': new_member, 'hash': hash})
+            fetch(
+                'https://cookies.your-amicus.app/sg-law-cookies-func/email_support/add_member', {
+                    method: 'POST',
+                    body: json,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                }
+            ).then(response => {
+                if (response.ok) {
+                    document.getElementById('subscribeResult').innerHTML = 'Thank you for subscribing! ' +
+                        'You will now receive our emails. A email to confirm has been sent.'
+                } else {
+                    document.getElementById('subscribeResult').innerHTML = 'An error occurred. Please try again ' +
+                        'later or <a href="mailto: cookies@your-amicus.app">email me</a> to get some support.'
+                }
+            })
+        } else {
+            document.getElementById('subscribeResult').innerHTML = 'Some of the required information is not provided. ' +
+                "Did you click on the right link? " + '<a href="mailto: cookies@your-amicus.app">Or email me</a> to ' +
+                'get some support.'
+        }
+    }
+</script>
+{{- end }}
+
+{{/* end main */}}

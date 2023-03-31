@@ -76,3 +76,49 @@
     align-items: center;
     justify-content: center;
 }
+
+
+.unsub-form {
+    background-color: var(--tertiary);
+    border: 1px solid #ddd;
+    padding: 20px;
+    text-align: center;
+}
+
+.unsub-form p {
+    margin-bottom: 10px;
+    margin-top: 10px;
+}
+
+.unsub-form button {
+    background-color: #337ab7;
+    border: none;
+    color: #fff;
+    padding: 10px 20px;
+    text-transform: uppercase;
+    font-weight: bold;
+    cursor: pointer;
+    height: 60px;
+    vertical-align: middle;
+}
+
+.unsub-form button:hover {
+    background-color: #286090;
+}
+
+.unsub-form form input {
+    min-height: auto;
+    padding: 10px 20px;
+    background-color: var(--primary);
+    color: var(--tertiary);
+    height: 60px;
+    vertical-align: middle;
+}
+
+.unsub-form form {
+    margin-bottom: 10px;
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

@@ -1,6 +1,6 @@
 <div class="cta-box">
-    <h1>Don't miss any updates — subscribe today! </h1>
-    <form action="https://cookies.your-amicus.app/sg-law-cookies-func/email_support/add_member" method="post"
+    <h2>Don't miss any updates — subscribe today! </h2>
+    <form action="https://cookies.your-amicus.app/sg-law-cookies-func/email_support/send_confirmation" method="post"
           id="email-sub-form">
         <label for="email"></label>
         <input type="email" id="email" name="new_member" autocomplete="email"
@@ -21,7 +21,7 @@
         // Send an AJAX request instead
         const formData = new FormData(document.getElementById('email-sub-form'));
         const json = JSON.stringify(Object.fromEntries(formData));
-        fetch('https://cookies.your-amicus.app/sg-law-cookies-func/email_support/add_member', {
+        fetch('https://cookies.your-amicus.app/sg-law-cookies-func/email_support/send_confirmation', {
             method: 'POST',
             body: json,
             headers: {
@@ -29,13 +29,12 @@
             }
         })
             .then(response => {
-                console.log(response)
                 if (response.ok) {
                     document.getElementById('form-submit-result').innerHTML = 'Thank you for subscribing! ' +
                         'We sent an email to confirm, so please check your inbox or spam folder to see if you got it!'
                 } else {
                     document.getElementById('form-submit-result').innerHTML = 'An error occurred. Please try again ' +
-                        'later or <a href="email: cookies@your-amicus.app">email me</a> to get some support.'
+                        'later or <a href="mailto: cookies@your-amicus.app">email me</a> to get some support.'
                 }
             })
     })

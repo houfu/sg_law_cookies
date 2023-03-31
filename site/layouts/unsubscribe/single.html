@@ -1,0 +1,54 @@
+{{- define "main" }}
+
+<header class="page-header">
+    <h1>
+        Unsubscribe to SG Law Cookies
+    </h1>
+    <p>We are sorry to see you go, but I hope you have enjoyed our time together.</p>
+</header>
+
+<div class="post-content unsub-form">
+    <form action="https://cookies.your-amicus.app/sg-law-cookies-func/email_support/send_confirmation" method="post"
+          id="email-unsub-form">
+        <label for="email"></label>
+        <input type="email" id="email" name="unsubscribe_member" autocomplete="email"
+               placeholder="Enter an email address here"
+               required>
+        <button type="submit">Unsubscribe ❌</button>
+    </form>
+    <p id="unsubscribeResult"></p>
+</div>
+<div class="post-content">
+    {{- if not (.Param "disableAnchoredHeadings") }}
+    {{- partial "anchored_headings.html" .Content -}}
+    {{- else }}{{ .Content }}{{ end }}
+</div>
+<script>
+    document.getElementById('email-unsub-form').addEventListener('submit', function (event) {
+        event.preventDefault()
+
+        // Send an AJAX request instead
+        const formData = new FormData(document.getElementById('email-unsub-form'));
+        const json = JSON.stringify(Object.fromEntries(formData));
+        fetch('https://cookies.your-amicus.app/sg-law-cookies-func/email_support/unsubscribe_member', {
+            method: 'POST',
+            body: json,
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => {
+                if (response.ok) {
+                    document.getElementById('unsubscribeResult').innerHTML = 'You are now unsubscribed!'
+                } else {
+                    document.getElementById('unsubscribeResult').innerHTML = 'An error occurred. Please try again ' +
+                        'later or <a href="mailto: cookies@your-amicus.app">email me</a> to get some support.'
+                }
+            })
+    })
+
+
+</script>
+{{- end }}
+
+{{/* end main */}}
