@@ -9,13 +9,12 @@
 <header>
     <h1>SG Law Cookies ({{ today.strftime("%d %B %Y") }})</h1>
     <p style="font-size: small">If you would like to read this on your browser, here is
-        <a href="https://cookies.your-amicus.app/post/{{ today.strftime("%d-%B-%Y") }}"> a link to today's cookie. </a></p>
+        <a href="https://cookies.your-amicus.app/post/{{ today.strftime("%d-%B-%Y").lower() }}"> a link to today's cookie. </a></p>
 </header>
 <hr>
 <main>
-    <p>Hello, this is Your Amicus, your friendly little legal bot from the little island of Singapore.
-    </p>
-    <p>It's {{ today.strftime("%d %B %Y") }}. {{ day_summary }}</p>
+    <p>Hello, this is Your Amicus, your friendly little legal bot from the little island of Singapore.</p>
+    <p style="font-weight: 500">It's {{ today.strftime("%d %B %Y") }}. {{ day_summary }}</p>
     <h2>Here are some news articles from the Singapore Law Watch.</h2>
     {% for summary in summaries %}
         <p>{{ summary[0] }} [<a href="{{ summary[1] }}">link</a>]</p>
@@ -23,7 +22,7 @@
 </main>
 <hr>
 <footer>
-    <p><strong>Disclaimer: </strong>  The articles are summarised by a Large Language Model,
+    <p style="font-size: small"><strong>Disclaimer: </strong>  The articles are summarised by a Large Language Model,
         and while we do our best to ensure that they are accurate, we cannot guarantee or warrant its accuracy,
         completeness, reliability, or suitability. Any reliance on the information presented is at your own risk.
         Click on the links to view the original articles in their own context.
