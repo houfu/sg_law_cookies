@@ -36,9 +36,9 @@ def check_if_article_should_be_included(article: NewsArticle, scrape_date: datet
         return False
     today = scrape_date
     if today.weekday() == 0:
-        friday = today - datetime.timedelta(days=2)
-        return article.date.year == friday.year and article.date.day > friday.day \
-            and article.date.month == friday.month
+        saturday = today - datetime.timedelta(days=2)
+        return article.date.year == saturday.year and article.date.day >= saturday.day \
+            and article.date.month == saturday.month
     else:
         return article.date.year == today.year and article.date.day == today.day and article.date.month == today.month
 
@@ -133,18 +133,25 @@ def main():
             )
         )
 
-    newsletter_template = env.get_template("newsletter_post.jinja2")
-    content = newsletter_template.render(
+    newsletter_template = env.get_template("newsletter_post_html.jinja2")
+    content_html = newsletter_template.render(
+        today=scrape_date,
+        summaries=summaries,
+        day_summary=day_summary
+    )
+    newsletter_template_text = env.get_template("newsletter_post_text.jinja2")
+    content = newsletter_template_text.render(
         today=scrape_date,
         summaries=summaries,
         day_summary=day_summary
     )
     title = f"SG Law Cookies ({scrape_date.strftime('%d %B %Y')})"
-    requests.post(
+    response_email = requests.post(
         "https://cookies.your-amicus.app/sg-law-cookies-func/email_support/send_newsletter",
-        json={"content": content, "title": title},
+        json={"content_html": content_html, "context_text": content, "title": title},
         headers={"Content-Type": "application/json"}
     )
+    print(f"Email newsletter: {response_email.json()['message']}")
 
 
 if __name__ == '__main__':
