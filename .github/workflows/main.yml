@@ -1,0 +1,39 @@
+# This workflow will install Python dependencies, run the script, commit the changes and push.
+
+name: SG Law Cookies CI
+
+on:
+  schedule:
+    - cron: '30 3 * * 1,2,3,4,5'
+
+permissions:
+  contents: read|write
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.10"
+    - uses: Gr1N/setup-poetry@v8
+    - uses: actions/cache@v2
+      with:
+        path: ~/.cache/pypoetry/virtualenvs
+        key: ${{ runner.os }}-poetry-${{ hashFiles('poetry.lock') }}
+    - run: poetry install
+    - run: python sg_law_cookies/main.py
+      name: Run Script
+      env:
+        OPENAI_API_KEY: ${{ secrets.OPENAI_KEY }}
+    - name: Commit and Push Changes
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add .
+        git commit -m "Add $(date +'%d %b %Y')"
+        git push
