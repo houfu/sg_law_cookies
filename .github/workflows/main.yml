@@ -7,7 +7,7 @@ on:
     - cron: '30 3 * * 1,2,3,4,5'
 
 permissions:
-  contents: read|write
+  contents: write
 
 jobs:
   build:
