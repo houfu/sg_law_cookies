@@ -14,7 +14,10 @@
 <hr>
 <main>
     <p>Hello, this is Your Amicus, your friendly little legal bot from the little island of Singapore.</p>
-    <p style="font-weight: 500">It's {{ today.strftime("%d %B %Y") }}. {{ day_summary }}</p>
+    <p style="font-weight: 500">Here's a summary of today's post, in the form of a short poem:</p>
+       <p>{% for line in day_summary %}
+           {{ line }} <br/>
+       {% endfor %}</p>
     <h2>Here are some news articles from the Singapore Law Watch.</h2>
     {% for summary in summaries %}
         <p>{{ summary[0] }} [<a href="{{ summary[1] }}">link</a>]</p>

@@ -3,12 +3,15 @@ title: SG Law Cookies ({{ today.strftime("%d %B %Y") }})
 date: {{ today.strftime('%Y-%m-%d %H:%M:%S') }} +0800
 description: SG Law Cookies, an algorithmically produced digest of legal news in Singapore, for {{ today.strftime("%d %B %Y") }}
 summary: |
-  {{ day_summary }}
+  {{ day_summary_block }}
 ---
 
 Hello, this is Your Amicus, your friendly little legal bot from the little island of Singapore.
 
-**It's {{ today.strftime("%d %B %Y") }}. {{ day_summary }}**
+Here's a summary of today's post, in the form of a short poem:
+{% for line in day_summary %}
+{{ line }}
+{% endfor %}
 
 ## Here are some news articles from the Singapore Law Watch.
 

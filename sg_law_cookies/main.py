@@ -94,14 +94,14 @@ def get_summaries(articles: list[NewsArticle]):
         day_messages.append(result)
 
     day_summary_template = "Now, use all the news articles provided previously to create an introduction " \
-                           "for today's blog post."
+                           "for today's blog post in the form of a vivid poem which has not more than 6 lines."
     day_summary_prompt = HumanMessagePromptTemplate.from_template(day_summary_template)
 
     day_messages = day_messages + day_summary_prompt.format_messages()
 
     day_summary = chat(day_messages)
 
-    return summaries, day_summary.content
+    return summaries, day_summary.content.splitlines()
 
 
 def main():
@@ -129,6 +129,7 @@ def main():
             blog_template.render(
                 today=scrape_date,
                 summaries=summaries,
+                day_summary_block=' '.join(day_summary),
                 day_summary=day_summary
             )
         )
@@ -137,13 +138,13 @@ def main():
     content_html = newsletter_template.render(
         today=scrape_date,
         summaries=summaries,
-        day_summary=day_summary
+        day_summary=day_summary,
     )
     newsletter_template_text = env.get_template("newsletter_post_text.jinja2")
     content = newsletter_template_text.render(
         today=scrape_date,
         summaries=summaries,
-        day_summary=day_summary
+        day_summary=' '.join(day_summary)
     )
     title = f"SG Law Cookies ({scrape_date.strftime('%d %B %Y')})"
     response_email = requests.post(
