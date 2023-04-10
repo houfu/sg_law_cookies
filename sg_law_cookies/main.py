@@ -1,13 +1,10 @@
 import datetime
 
-import dotenv
 import requests
 from bs4 import BeautifulSoup
 from jinja2 import Environment, PackageLoader
 from langchain.chat_models import ChatOpenAI
 from langchain.prompts import SystemMessagePromptTemplate, HumanMessagePromptTemplate, ChatPromptTemplate
-
-dotenv.load_dotenv()
 
 
 class NewsArticle:
@@ -129,7 +126,7 @@ def main():
             blog_template.render(
                 today=scrape_date,
                 summaries=summaries,
-                day_summary_block=' '.join(day_summary),
+                day_summary_block='  \t'.join(day_summary),
                 day_summary=day_summary
             )
         )
@@ -144,7 +141,7 @@ def main():
     content = newsletter_template_text.render(
         today=scrape_date,
         summaries=summaries,
-        day_summary=' '.join(day_summary)
+        day_summary='\n'.join(day_summary)
     )
     title = f"SG Law Cookies ({scrape_date.strftime('%d %B %Y')})"
     response_email = requests.post(
