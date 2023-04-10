@@ -144,12 +144,12 @@ def main():
         day_summary='\n'.join(day_summary)
     )
     title = f"SG Law Cookies ({scrape_date.strftime('%d %B %Y')})"
-    # response_email = requests.post(
-    #     "https://cookies.your-amicus.app/sg-law-cookies-func/email_support/send_newsletter",
-    #     json={"content_html": content_html, "context_text": content, "title": title},
-    #     headers={"Content-Type": "application/json"}
-    # )
-    # print(f"Email newsletter: {response_email.json()['message']}")
+    response_email = requests.post(
+        "https://cookies.your-amicus.app/sg-law-cookies-func/email_support/send_newsletter",
+        json={"content_html": content_html, "context_text": content, "title": title},
+        headers={"Content-Type": "application/json"}
+    )
+    print(f"Email newsletter: {response_email.json()['message']}")
 
 
 if __name__ == '__main__':
