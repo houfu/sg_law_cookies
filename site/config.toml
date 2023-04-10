@@ -26,3 +26,4 @@ url = "/privacy/"
 [params]
 ShowShareButtons = true
 ShowPostNavLinks = true
+images = "repository-open-graph-template.png"
