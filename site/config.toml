@@ -26,4 +26,4 @@ url = "/privacy/"
 [params]
 ShowShareButtons = true
 ShowPostNavLinks = true
-images = "https://cookies.your-amicus.app/repository-open-graph-template.png"
+images = ["repository-open-graph-template.png"]
