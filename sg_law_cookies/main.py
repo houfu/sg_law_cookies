@@ -1,10 +1,16 @@
 import datetime
 
 import requests
+import tiktoken
 from bs4 import BeautifulSoup
 from jinja2 import Environment, PackageLoader
+from langchain import OpenAI
+from langchain.chains.summarize import load_summarize_chain
 from langchain.chat_models import ChatOpenAI
-from langchain.prompts import SystemMessagePromptTemplate, HumanMessagePromptTemplate, ChatPromptTemplate
+from langchain.prompts import SystemMessagePromptTemplate, HumanMessagePromptTemplate, ChatPromptTemplate, \
+    AIMessagePromptTemplate
+from langchain.schema import Document
+from langchain.text_splitter import TokenTextSplitter
 
 
 class NewsArticle:
@@ -63,11 +69,8 @@ def get_summaries(articles: list[NewsArticle]):
                       "are in a rush. \nThe summary should focus on the legal aspects of the article and be " \
                       "accessible and easygoing. \n Summaries should be accurate and engaging."
     system_message_prompt = SystemMessagePromptTemplate.from_template(system_template)
-    human_template = "Summarise this article from the Singapore Law Watch website: \n\n {article}"
-    human_message_prompt = HumanMessagePromptTemplate.from_template(human_template)
-    shorter_template = "Now make it more concise."
-    shorter_message_prompt = HumanMessagePromptTemplate.from_template(shorter_template)
-    article_summary_prompt = ChatPromptTemplate.from_messages([system_message_prompt, human_message_prompt])
+    llm_template = "Here is a summary: \n\n {summary}"
+    llm_message_prompt = AIMessagePromptTemplate.from_template(llm_template)
 
     day_messages = [] + system_message_prompt.format_messages()
     summaries = []
@@ -77,18 +80,37 @@ def get_summaries(articles: list[NewsArticle]):
         soup = BeautifulSoup(r.content, "html5lib")
         article_content = soup.article.h1.text + "\n" + "\n".join([p.text for p in soup.article.find_all('p')])
 
-        messages = article_summary_prompt.format_prompt(article=article_content).to_messages()
+        encoding = tiktoken.get_encoding("cl100k_base")
+        if len(encoding.encode(article_content)) <= 3500:
+            human_template = "Summarise this article from the Singapore Law Watch website: \n\n {article}"
+            human_message_prompt = HumanMessagePromptTemplate.from_template(human_template)
+            article_summary_prompt = ChatPromptTemplate.from_messages([system_message_prompt, human_message_prompt])
+            messages = article_summary_prompt.format_prompt(article=article_content).to_messages()
+            summary_response = chat(messages)
+            result = summary_response.content
+            messages.append(summary_response)
 
-        result = chat(messages)
+        else:
+            llm = OpenAI(temperature=0)
+            text_splitter = TokenTextSplitter(chunk_size=2500, chunk_overlap=10)
+            texts = text_splitter.split_text(article_content)
+            docs = [Document(page_content=t) for t in texts]
+            chain = load_summarize_chain(llm, chain_type="refine")
+            result = chain.run(docs)
+            llm_summary_prompt = ChatPromptTemplate.from_messages([system_message_prompt, llm_message_prompt])
+            messages = llm_summary_prompt.format_prompt(summary=result).to_messages()
 
-        while len(result.content) > 450:
-            messages.append(result)
+        while len(result) > 450:
+            shorter_template = "Now make it more concise."
+            shorter_message_prompt = HumanMessagePromptTemplate.from_template(shorter_template)
             messages = messages + shorter_message_prompt.format_messages()
-            result = chat(messages)
+            result_response = chat(messages)
+            messages.append(result_response)
+            result = result_response.content
 
-        summaries.append((result.content, article.source_link))
+        summaries.append((result, article.source_link))
 
-        day_messages.append(result)
+        day_messages.append(llm_message_prompt.format(summary=result))
 
     day_summary_template = "Now, use all the news articles provided previously to create an introduction " \
                            "for today's blog post in the form of a vivid poem which has not more than 6 lines."
@@ -108,7 +130,7 @@ def main():
     )
     template = env.get_template('template.jinja2')
     print("Getting summaries.")
-    scrape_date = datetime.datetime.today()
+    scrape_date = datetime.datetime(2023, 5, 15)
     summaries, day_summary = get_summaries(scrape_news_articles_today(scrape_date))
     if len(summaries) == 0:
         raise Exception("No summaries were found.")
