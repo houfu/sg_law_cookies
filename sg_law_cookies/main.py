@@ -130,7 +130,7 @@ def main():
     )
     template = env.get_template('template.jinja2')
     print("Getting summaries.")
-    scrape_date = datetime.datetime(2023, 5, 15)
+    scrape_date = datetime.datetime.today()
     summaries, day_summary = get_summaries(scrape_news_articles_today(scrape_date))
     if len(summaries) == 0:
         raise Exception("No summaries were found.")
