@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="Black">
+    <option name="enabledOnReformat" value="true" />
+    <option name="executionMode" value="BINARY" />
+    <option name="pathToExecutable" value="$USER_HOME$/.local/bin/black" />
+    <option name="sdkUUID" value="10843de3-0ce2-4c4e-ae03-963ebd85f68f" />
+  </component>
   <component name="ProjectRootManager" version="2" project-jdk-name="Poetry (sg_law_cookies)" project-jdk-type="Python SDK" />
 </project>
