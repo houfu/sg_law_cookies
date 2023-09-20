@@ -1,0 +1,77 @@
+version: 4
+data:
+  attachedData:
+    trivet:
+      testSuites: []
+      version: 1
+  graphs:
+    00VncX3B6gkOT1eQlNkMj:
+      metadata:
+        description: ""
+        id: 00VncX3B6gkOT1eQlNkMj
+        name: Summarise Article
+      nodes:
+        '[488tcXtBauHyHcspVWXat]:prompt "Prompt"':
+          data:
+            enableFunctionCall: false
+            name: Summarise
+            promptText: "Summarise this article from the Singapore Law Watch website in less
+              than 50 words: \\n\\n {{article}}"
+            type: user
+            useTypeInput: false
+          outgoingConnections:
+            - output->"Chat" Imrm7Y3zLD6YHY-rGyFl3/prompt
+          visualData: 542.7286866489779/637.289800127999/250/18
+        '[HrH-bMKSVBXs3yPcXwaC5]:text "Main System Prompt"':
+          data:
+            text: You are a helpful assistant that summarises news articles and opinions for
+              lawyers who are in a rush. \nThe summary should focus on the legal
+              aspects of the article and be accessible and easygoing. \n
+              Summaries should be accurate and engaging.
+          outgoingConnections:
+            - output->"Chat" Imrm7Y3zLD6YHY-rGyFl3/systemPrompt
+          visualData: 414.2314947089557/240.2124119198969/300/9
+        '[Imrm7Y3zLD6YHY-rGyFl3]:chat "Chat"':
+          data:
+            cache: false
+            enableFunctionUse: false
+            frequencyPenalty: 0
+            maxTokens: 1024
+            model: gpt-3.5-turbo
+            presencePenalty: 0
+            stop: ""
+            temperature: 0.25
+            top_p: 1
+            useAsGraphPartialOutput: true
+            useFrequencyPenaltyInput: false
+            useMaxTokensInput: false
+            useModelInput: false
+            usePresencePenaltyInput: false
+            useStop: false
+            useStopInput: false
+            useTemperatureInput: false
+            useTopP: false
+            useTopPInput: false
+            useUseTopPInput: false
+            useUserInput: false
+          visualData: 878.7172459019874/423.4788987851748/377.4840286404569/29
+        '[_aDAu2Nf4F92d9sszOXNG]:userInput "Input Article"':
+          data:
+            prompt: What's the news article?
+            useInput: false
+          outgoingConnections:
+            - output->"Prompt" 488tcXtBauHyHcspVWXat/article
+          visualData: 24.526896202330377/667.8342146055453/250/24
+        '[xhW1fjOuNFTrC5cquozCJ]:comment "Comment"':
+          data:
+            backgroundColor: rgba(0,0,0,0.05)
+            color: rgba(255,255,255,1)
+            height: 123.0688226084751
+            text: This graph does not show that we try to reduce the length of the article
+              if it longer than 3500 tokens.
+          visualData: 244.09693279330475/823.353952281273/322.91402033294446/28
+  metadata:
+    description: ""
+    id: fC9Q3YlZm8P5JwaFkaaOT
+    title: Untitled Project
+  plugins: []
