@@ -1,11 +1,8 @@
 import datetime
 
 import requests
-import tiktoken
 from bs4 import BeautifulSoup
 from jinja2 import Environment, PackageLoader
-from langchain import OpenAI
-from langchain.chains.summarize import load_summarize_chain
 from langchain.chat_models import ChatOpenAI
 from langchain.prompts import (
     SystemMessagePromptTemplate,
@@ -13,8 +10,25 @@ from langchain.prompts import (
     ChatPromptTemplate,
     AIMessagePromptTemplate,
 )
-from langchain.schema import Document
-from langchain.text_splitter import TokenTextSplitter
+
+system_template = """As an AI expert in legal affairs, your task is to provide concise, yet comprehensive 
+    summaries of legal news articles for time-constrained attorneys. These summaries should highlight the critical 
+    legal aspects, relevant precedents, and implications of the issues discussed in the articles.
+
+Despite their complexity, the summaries should be accessible and digestible, written in an engaging and 
+conversational style. Accuracy and attention to detail are essential, as the readers will be legal professionals who 
+may use these summaries to inform their practice.
+
+### Instructions: 
+1. Begin the summary with a brief introduction of the topic of the article.
+2. Outline the main legal aspects, implications, and precedents highlighted in the article. 
+3. End the summary with a succinct conclusion or takeaway.
+
+Aim for summaries to be no more than five sentences, but ensure they efficiently deliver the key legal insights, 
+making them beneficial for quick comprehension. The end goal is to help the lawyers understand the crux of the 
+articles without having to read them in their entirety."""
+
+system_message_prompt = SystemMessagePromptTemplate.from_template(system_template)
 
 
 class NewsArticle:
@@ -81,14 +95,32 @@ def scrape_news_articles_today(scrape_date: datetime.date) -> list[NewsArticle]:
     ]
 
 
-def get_summaries(articles: list[NewsArticle]):
-    chat = ChatOpenAI(temperature=0.25)
-    system_template = (
-        "You are a helpful assistant that summarises news articles and opinions for lawyers who "
-        "are in a rush. \nThe summary should focus on the legal aspects of the article and be "
-        "accessible and easygoing. \n Summaries should be accurate and engaging."
+def get_summary(article: NewsArticle):
+    r = requests.get(article.source_link)
+    soup = BeautifulSoup(r.content, "html5lib")
+    article_content = (
+        soup.article.h1.text
+        + "\n"
+        + "\n".join([p.text for p in soup.article.find_all("p")])
     )
-    system_message_prompt = SystemMessagePromptTemplate.from_template(system_template)
+
+    human_template = (
+        "Summarise this article from the Singapore Law Watch website "
+        "in less than 50 words: \n\n {article}"
+    )
+    human_message_prompt = HumanMessagePromptTemplate.from_template(human_template)
+    article_summary_prompt = ChatPromptTemplate.from_messages(
+        [system_message_prompt, human_message_prompt]
+    )
+    messages = article_summary_prompt.format_prompt(
+        article=article_content
+    ).to_messages()
+    chat = ChatOpenAI(model_name="gpt-3.5-turbo-16k")
+    summary_response = chat(messages)
+    return summary_response.content
+
+
+def get_summaries(articles: list[NewsArticle]):
     llm_template = "Here is a summary: \n\n {summary}"
     llm_message_prompt = AIMessagePromptTemplate.from_template(llm_template)
 
@@ -96,49 +128,33 @@ def get_summaries(articles: list[NewsArticle]):
     summaries = []
 
     for article in articles:
-        r = requests.get(article.source_link)
-        soup = BeautifulSoup(r.content, "html5lib")
-        article_content = (
-            soup.article.h1.text
-            + "\n"
-            + "\n".join([p.text for p in soup.article.find_all("p")])
-        )
-
-        encoding = tiktoken.get_encoding("cl100k_base")
-
-        if len(encoding.encode(article_content)) > 3500:
-            llm = OpenAI(temperature=0)
-            text_splitter = TokenTextSplitter(chunk_size=2500, chunk_overlap=10)
-            texts = text_splitter.split_text(article_content)
-            docs = [Document(page_content=t) for t in texts]
-            chain = load_summarize_chain(llm, chain_type="refine")
-            article_content = chain.run(docs)
-
-        human_template = (
-            "Summarise this article from the Singapore Law Watch website "
-            "in less than 50 words: \n\n {article}"
-        )
-        human_message_prompt = HumanMessagePromptTemplate.from_template(human_template)
-        article_summary_prompt = ChatPromptTemplate.from_messages(
-            [system_message_prompt, human_message_prompt]
-        )
-        messages = article_summary_prompt.format_prompt(
-            article=article_content
-        ).to_messages()
-        summary_response = chat(messages)
-        result = summary_response.content
+        result = get_summary(article)
 
         summaries.append((result, article.source_link))
 
         day_messages.append(llm_message_prompt.format(summary=result))
 
     day_summary_template = (
-        "Now, use all the news articles provided previously to create an introduction "
-        "for today's blog post in the form of a vivid poem which has not more than 6 lines."
+        """As an expert poet, your challenge is to craft a succinct yet vivid poem of no more than six lines. This 
+        poem should encapsulate the essence of the multiple news summaries previously provided.
+
+### Your Toolkit:
+- Start with clear instructions.
+- Make use of descriptive language and powerful imagery to keep your reader engaged.
+- Experiment with various poetic techniques such as alliteration, rhyme or metaphor.
+- Your primary goal is to create a snapshot of the current world scenario through your verse.
+
+Example:
+
+"In the spins of world affairs, where facts unfurl.<br> 
+Through winds of change, the news summary swirls..."
+        """
     )
     day_summary_prompt = HumanMessagePromptTemplate.from_template(day_summary_template)
 
     day_messages = day_messages + day_summary_prompt.format_messages()
+
+    chat = ChatOpenAI(model_name="gpt-4", temperature=0.25)
 
     day_summary = chat(day_messages)
 
