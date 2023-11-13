@@ -105,8 +105,8 @@ def get_summary(article: NewsArticle):
     )
 
     human_template = (
-        "Summarise this article from the Singapore Law Watch website "
-        "in less than 50 words: \n\n {article}"
+        "This is an article from the Singapore Law Watch website: "
+        "\n\n{article}"
     )
     human_message_prompt = HumanMessagePromptTemplate.from_template(human_template)
     article_summary_prompt = ChatPromptTemplate.from_messages(
