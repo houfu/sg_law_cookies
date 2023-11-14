@@ -10,6 +10,7 @@ from langchain.prompts import (
     ChatPromptTemplate,
     AIMessagePromptTemplate,
 )
+from pydantic import BaseModel, AnyHttpUrl
 
 system_template = """As an AI expert in legal affairs, your task is to provide concise, yet comprehensive 
     summaries of legal news articles for time-constrained attorneys. These summaries should highlight the critical 
@@ -40,6 +41,12 @@ class NewsArticle:
         self.date = datetime.datetime.strptime(
             article.pubDate.text, "%d %b %Y %H:%M:%S"
         )
+
+
+class SGLawCookie(BaseModel):
+    resource_url: AnyHttpUrl
+    cookie_content: str
+    published_date: datetime.date
 
 
 def check_if_article_should_be_included(
@@ -105,8 +112,7 @@ def get_summary(article: NewsArticle):
     )
 
     human_template = (
-        "This is an article from the Singapore Law Watch website: "
-        "\n\n{article}"
+        "This is an article from the Singapore Law Watch website: " "\n\n{article}"
     )
     human_message_prompt = HumanMessagePromptTemplate.from_template(human_template)
     article_summary_prompt = ChatPromptTemplate.from_messages(
@@ -134,8 +140,7 @@ def get_summaries(articles: list[NewsArticle]):
 
         day_messages.append(llm_message_prompt.format(summary=result))
 
-    day_summary_template = (
-        """As an expert poet, your challenge is to craft a succinct yet vivid poem of no more than six lines. This 
+    day_summary_template = """As an expert poet, your challenge is to craft a succinct yet vivid poem of no more than six lines. This 
         poem should encapsulate the essence of the multiple news summaries previously provided.
 
 ### Your Toolkit:
@@ -149,7 +154,6 @@ Example:
 "In the spins of world affairs, where facts unfurl.<br> 
 Through winds of change, the news summary swirls..."
         """
-    )
     day_summary_prompt = HumanMessagePromptTemplate.from_template(day_summary_template)
 
     day_messages = day_messages + day_summary_prompt.format_messages()
@@ -171,13 +175,12 @@ def main():
     if len(summaries) == 0:
         raise Exception("No summaries were found.")
     print("Summaries completed, rendering template.")
-    print(
-        template.render(
-            today=scrape_date.strftime("%d %B %Y"),
-            summaries=summaries,
-            day_summary=day_summary,
-        )
+    content = template.render(
+        today=scrape_date.strftime("%d %B %Y"),
+        summaries=summaries,
+        day_summary=day_summary,
     )
+    print(content)
 
     blog_template = env.get_template("blog_post.jinja2")
     with open(
@@ -191,6 +194,18 @@ def main():
                 day_summary="  \n".join(day_summary),
             )
         )
+
+    new_cookie = SGLawCookie(
+        resource_url=f"https://cookies.your-amicus.app/post/{scrape_date.strftime('%d-%B-%Y')}/",
+        cookie_content=content,
+        published_date=scrape_date,
+    )
+
+    requests.post(
+        "https://cookies.your-amicus.app/sg-law-cookies-func/zeeker_support/new_cookie",
+        json={"content": new_cookie.model_dump_json()},
+        headers={"Content-Type": "application/json"},
+    )
 
     newsletter_template = env.get_template("newsletter_post_html.jinja2")
     content_html = newsletter_template.render(
