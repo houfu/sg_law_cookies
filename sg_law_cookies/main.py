@@ -198,7 +198,7 @@ def main():
     new_cookie = SGLawCookie(
         resource_url=f"https://cookies.your-amicus.app/post/{scrape_date.strftime('%d-%B-%Y')}/",
         cookie_content=content,
-        published_date=scrape_date,
+        published_date=datetime.date.today(),
     )
 
     requests.post(
