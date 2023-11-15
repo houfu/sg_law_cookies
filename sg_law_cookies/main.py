@@ -1,4 +1,5 @@
 import datetime
+from typing import Optional
 
 import requests
 from bs4 import BeautifulSoup
@@ -32,8 +33,17 @@ articles without having to read them in their entirety."""
 system_message_prompt = SystemMessagePromptTemplate.from_template(system_template)
 
 
-class NewsArticle:
-    def __init__(self, article):
+class NewsArticle(BaseModel):
+    category: str
+    title: str
+    source_link: AnyHttpUrl
+    author: str
+    date: datetime.datetime
+    summary: Optional[str]
+
+    @classmethod
+    def from_article(cls, article):
+        self = cls()
         self.category = article.category.text
         self.title = article.title.text
         self.source_link = article.link.text
@@ -41,6 +51,7 @@ class NewsArticle:
         self.date = datetime.datetime.strptime(
             article.pubDate.text, "%d %b %Y %H:%M:%S"
         )
+        return self
 
 
 class SGLawCookie(BaseModel):
@@ -93,7 +104,9 @@ def scrape_news_articles_today(scrape_date: datetime.date) -> list[NewsArticle]:
 
     soup = BeautifulSoup(r.content, "lxml-xml")
 
-    news_articles = [NewsArticle(article) for article in soup.find_all("item")]
+    news_articles = [
+        NewsArticle.from_article(article) for article in soup.find_all("item")
+    ]
 
     return [
         article
@@ -102,7 +115,7 @@ def scrape_news_articles_today(scrape_date: datetime.date) -> list[NewsArticle]:
     ]
 
 
-def get_summary(article: NewsArticle):
+def get_summary(article: NewsArticle) -> NewsArticle:
     r = requests.get(article.source_link)
     soup = BeautifulSoup(r.content, "html5lib")
     article_content = (
@@ -123,7 +136,8 @@ def get_summary(article: NewsArticle):
     ).to_messages()
     chat = ChatOpenAI(model_name="gpt-3.5-turbo-16k")
     summary_response = chat(messages)
-    return summary_response.content
+    article.summary = summary_response.content
+    return article
 
 
 def get_summaries(articles: list[NewsArticle]):
@@ -136,9 +150,15 @@ def get_summaries(articles: list[NewsArticle]):
     for article in articles:
         result = get_summary(article)
 
-        summaries.append((result, article.source_link))
+        summaries.append((result.summary, article.source_link))
 
-        day_messages.append(llm_message_prompt.format(summary=result))
+        day_messages.append(llm_message_prompt.format(summary=result.summary))
+
+        requests.post(
+            "https://cookies.your-amicus.app/zeeker_support/new_newsarticle",
+            json={"content": result.model_dump_json()},
+            headers={"Content-Type": "application/json"},
+        )
 
     day_summary_template = """As an expert poet, your challenge is to craft a succinct yet vivid poem of no more than six lines. This 
         poem should encapsulate the essence of the multiple news summaries previously provided.
