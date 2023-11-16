@@ -39,7 +39,16 @@ class NewsArticle(BaseModel):
     source_link: AnyHttpUrl
     author: str
     date: datetime.datetime
-    summary: Optional[str]
+    summary: str
+    text: str
+
+
+class ScrapedArticle:
+    category: str
+    title: str
+    source_link: AnyHttpUrl
+    author: str
+    date: datetime.datetime
 
     @classmethod
     def from_article(cls, article):
@@ -61,7 +70,7 @@ class SGLawCookie(BaseModel):
 
 
 def check_if_article_should_be_included(
-    article: NewsArticle, scrape_date: datetime.date
+    article: ScrapedArticle, scrape_date: datetime.date
 ) -> bool:
     """
     Checks if an article should be included in the list to be processed by:
@@ -93,7 +102,7 @@ def check_if_article_should_be_included(
         )
 
 
-def scrape_news_articles_today(scrape_date: datetime.date) -> list[NewsArticle]:
+def scrape_news_articles_today(scrape_date: datetime.date) -> list[ScrapedArticle]:
     """
     Returns a list of today's news articles from Singapore law watch.
     :return:
@@ -105,7 +114,7 @@ def scrape_news_articles_today(scrape_date: datetime.date) -> list[NewsArticle]:
     soup = BeautifulSoup(r.content, "lxml-xml")
 
     news_articles = [
-        NewsArticle.from_article(article) for article in soup.find_all("item")
+        ScrapedArticle.from_article(article) for article in soup.find_all("item")
     ]
 
     return [
@@ -115,7 +124,7 @@ def scrape_news_articles_today(scrape_date: datetime.date) -> list[NewsArticle]:
     ]
 
 
-def get_summary(article: NewsArticle) -> NewsArticle:
+def get_summary(article: ScrapedArticle) -> NewsArticle:
     r = requests.get(article.source_link)
     soup = BeautifulSoup(r.content, "html5lib")
     article_content = (
@@ -136,11 +145,18 @@ def get_summary(article: NewsArticle) -> NewsArticle:
     ).to_messages()
     chat = ChatOpenAI(model_name="gpt-3.5-turbo-16k")
     summary_response = chat(messages)
-    article.summary = summary_response.content
-    return article
+    return NewsArticle(
+        category=article.category,
+        title=article.title,
+        source_link=article.source_link,
+        author=article.author,
+        date=article.date,
+        summary=summary_response.content,
+        text=article_content,
+    )
 
 
-def get_summaries(articles: list[NewsArticle]):
+def get_summaries(articles: list[ScrapedArticle]):
     llm_template = "Here is a summary: \n\n {summary}"
     llm_message_prompt = AIMessagePromptTemplate.from_template(llm_template)
 
