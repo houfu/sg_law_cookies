@@ -1,5 +1,4 @@
 import datetime
-from typing import Optional
 
 import requests
 from bs4 import BeautifulSoup
@@ -232,7 +231,7 @@ def main():
         )
 
     new_cookie = SGLawCookie(
-        resource_url=f"https://cookies.your-amicus.app/post/{scrape_date.strftime('%d-%B-%Y')}/",
+        resource_url=f"https://cookies.your-amicus.app/post/{scrape_date.strftime('%d-%B-%Y').lower()}/",
         cookie_content=content,
         published_date=datetime.date.today(),
     )
