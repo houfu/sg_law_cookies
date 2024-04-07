@@ -169,11 +169,11 @@ def get_summaries(articles: list[ScrapedArticle]):
 
         day_messages.append(llm_message_prompt.format(summary=result.summary))
 
-        requests.post(
-            "https://cookies.your-amicus.app/sg-law-cookies-func/zeeker_support/new_newsarticle",
-            json={"content": result.model_dump_json()},
-            headers={"Content-Type": "application/json"},
-        )
+        # requests.post(
+        #     "https://cookies.your-amicus.app/sg-law-cookies-func/zeeker_support/new_newsarticle",
+        #     json={"content": result.model_dump_json()},
+        #     headers={"Content-Type": "application/json"},
+        # )
 
     day_summary_template = """As an expert poet, your challenge is to craft a succinct yet vivid poem of no more than 
     six lines. This poem should encapsulate the essence of the multiple news summaries previously provided.
