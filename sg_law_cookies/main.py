@@ -142,7 +142,7 @@ def get_summary(article: ScrapedArticle) -> NewsArticle:
     messages = article_summary_prompt.format_prompt(
         article=article_content
     ).to_messages()
-    chat = ChatOpenAI(model_name="gpt-3.5-turbo-16k")
+    chat = ChatOpenAI(model_name="gpt-4o-mini")
     summary_response = chat(messages)
     return NewsArticle(
         category=article.category,
