@@ -3,13 +3,13 @@ import datetime
 import requests
 from bs4 import BeautifulSoup
 from jinja2 import Environment, PackageLoader
-from langchain.chat_models import ChatOpenAI
 from langchain.prompts import (
     SystemMessagePromptTemplate,
     HumanMessagePromptTemplate,
     ChatPromptTemplate,
     AIMessagePromptTemplate,
 )
+from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, AnyHttpUrl
 
 system_template = """As an AI expert in legal affairs, your task is to provide concise, yet comprehensive 
@@ -25,7 +25,7 @@ may use these summaries to inform their practice.
 2. Outline the main legal aspects, implications, and precedents highlighted in the article. 
 3. End the summary with a succinct conclusion or takeaway.
 
-Aim for summaries to be no more than five sentences, but ensure they efficiently deliver the key legal insights, 
+The summaries should not be longer than 100 words, but ensure they efficiently deliver the key legal insights, 
 making them beneficial for quick comprehension. The end goal is to help the lawyers understand the crux of the 
 articles without having to read them in their entirety."""
 
@@ -142,8 +142,8 @@ def get_summary(article: ScrapedArticle) -> NewsArticle:
     messages = article_summary_prompt.format_prompt(
         article=article_content
     ).to_messages()
-    chat = ChatOpenAI(model_name="gpt-4o-mini")
-    summary_response = chat(messages)
+    chat = ChatOpenAI(model="gpt-4o-mini")
+    summary_response = chat.invoke(messages)
     return NewsArticle(
         category=article.category,
         title=article.title,
@@ -193,9 +193,9 @@ Through winds of change, the news summary swirls..."
 
     day_messages = day_messages + day_summary_prompt.format_messages()
 
-    chat = ChatOpenAI(model_name="gpt-4", temperature=0.25)
+    chat = ChatOpenAI(model="gpt-4o", temperature=0.25)
 
-    day_summary = chat(day_messages)
+    day_summary = chat.invoke(day_messages)
 
     return summaries, day_summary.content.splitlines()
 
