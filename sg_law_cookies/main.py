@@ -37,7 +37,7 @@ class NewsArticle(BaseModel):
     title: str
     source_link: AnyHttpUrl
     author: str
-    date: datetime.datetime
+    date: datetime.date
     summary: str
     text: str
 
@@ -47,7 +47,7 @@ class ScrapedArticle:
     title: str
     source_link: AnyHttpUrl
     author: str
-    date: datetime.datetime
+    date: datetime.date
 
     @classmethod
     def from_article(cls, article):
@@ -58,7 +58,7 @@ class ScrapedArticle:
         self.author = article.author.text
         self.date = datetime.datetime.strptime(
             article.pubDate.text, "%d %b %Y %H:%M:%S"
-        )
+        ).date()
         return self
 
 
@@ -75,7 +75,8 @@ def check_if_article_should_be_included(
     Checks if an article should be included in the list to be processed by:
 
     * Removing articles which are advertisements
-    * Removing articles which are in the past (i.e. not today). If it is a weekend today, return Friday's articles.
+    * Removing articles which are in the past (i.e. not today).
+    If it is a Monday today, return Saturday and Sunday's articles.
 
     :param scrape_date:
     :param article:
@@ -86,19 +87,16 @@ def check_if_article_should_be_included(
     if article.title.startswith("ADV: "):
         return False
     today = scrape_date
-    if today.weekday() == 0:
-        saturday = today - datetime.timedelta(days=2)
-        return (
-            article.date.year == saturday.year
-            and article.date.day >= saturday.day
-            and article.date.month == saturday.month
-        )
-    else:
-        return (
-            article.date.year == today.year
-            and article.date.day == today.day
-            and article.date.month == today.month
-        )
+    filter = (
+        [
+            today - datetime.timedelta(days=2),  # Saturday
+            today - datetime.timedelta(days=1),  # Sunday
+            today,  # Monday
+        ]
+        if today.weekday() == 0
+        else [today]
+    )
+    return article.date in filter
 
 
 def scrape_news_articles_today(scrape_date: datetime.date) -> list[ScrapedArticle]:
