@@ -87,7 +87,7 @@ def check_if_article_should_be_included(
     if article.title.startswith("ADV: "):
         return False
     today = scrape_date
-    filter = (
+    date_filter = (
         [
             today - datetime.timedelta(days=2),  # Saturday
             today - datetime.timedelta(days=1),  # Sunday
@@ -96,7 +96,7 @@ def check_if_article_should_be_included(
         if today.weekday() == 0
         else [today]
     )
-    return article.date in filter
+    return article.date in date_filter
 
 
 def scrape_news_articles_today(scrape_date: datetime.date) -> list[ScrapedArticle]:
@@ -114,11 +114,9 @@ def scrape_news_articles_today(scrape_date: datetime.date) -> list[ScrapedArticl
         ScrapedArticle.from_article(article) for article in soup.find_all("item")
     ]
 
-    return [
-        article
-        for article in news_articles
-        if check_if_article_should_be_included(article, scrape_date)
-    ]
+    result = [article for article in news_articles if check_if_article_should_be_included(article, scrape_date)]
+    print(f"No of articles: {len(result)}")
+    return result
 
 
 def get_summary(article: ScrapedArticle) -> NewsArticle:
@@ -203,7 +201,7 @@ def main():
     env = Environment(loader=PackageLoader("sg_law_cookies"))
     template = env.get_template("template.jinja2")
     print("Getting summaries.")
-    scrape_date = datetime.datetime.today()
+    scrape_date = datetime.date.today()
     summaries, day_summary = get_summaries(scrape_news_articles_today(scrape_date))
     if len(summaries) == 0:
         raise Exception("No summaries were found.")
