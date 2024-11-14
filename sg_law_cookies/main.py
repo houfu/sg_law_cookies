@@ -129,16 +129,28 @@ def get_summary(article: ScrapedArticle) -> NewsArticle:
     )
 
     human_template = (
-        "This is an article from the Singapore Law Watch website: " "\n\n{article}"
+        """
+        Article from Singapore Law Watch ({date}):
+        Title: {title}
+        Category: {category}
+
+        Content:
+        {article}
+
+        Provide a structured legal analysis following the format above.
+        """
     )
     human_message_prompt = HumanMessagePromptTemplate.from_template(human_template)
     article_summary_prompt = ChatPromptTemplate.from_messages(
         [system_message_prompt, human_message_prompt]
     )
     messages = article_summary_prompt.format_prompt(
-        article=article_content
+        article=article_content,
+        date=article.date.strftime("%d %B %Y"),
+        title=article.title,
+        category=article.category,
     ).to_messages()
-    chat = ChatOpenAI(model="gpt-4o-mini")
+    chat = ChatOpenAI(model="gpt-4o-mini", temperature=0.4)
     summary_response = chat.invoke(messages)
     return NewsArticle(
         category=article.category,
@@ -189,7 +201,7 @@ Through winds of change, the news summary swirls..."
 
     day_messages = day_messages + day_summary_prompt.format_messages()
 
-    chat = ChatOpenAI(model="gpt-4o", temperature=0.25)
+    chat = ChatOpenAI(model="gpt-4o", temperature=0.1)
 
     day_summary = chat.invoke(day_messages)
 
