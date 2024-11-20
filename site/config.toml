@@ -3,6 +3,7 @@ languageCode = 'en-us'
 title = 'SG Law Cookies by Your Amicus'
 theme = 'PaperMod'
 copyright = 'This work is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License.'
+ignoreLogs = ['warning-goldmark-raw-html']
 
 
 [outputs]
@@ -22,6 +23,11 @@ url = "/search/"
 identifier = "privacy"
 name = "Privacy Policy"
 url = "/privacy/"
+
+[[menu.main]]
+identifier = "calendar"
+name = "Calendar"
+url = "/calendar/"
 
 [params]
 ShowShareButtons = true

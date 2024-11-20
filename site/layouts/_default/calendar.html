@@ -1,0 +1,307 @@
+{{/* layouts/_default/calendar.html */}}
+{{ define "main" }}
+<article class="post-single">
+    <header class="post-header">
+        <h1 class="post-title">{{ .Title }}</h1>
+    </header>
+
+    <div class="post-content">
+        {{ partial "digest-calendar.html" . }}
+
+        <div id="digest-preview" class="digest-preview">
+            <h3 id="preview-title" class="digest-preview-title"></h3>
+            <div id="preview-content" class="digest-preview-content"></div>
+        </div>
+    </div>
+</article>
+
+{{ $style := `
+.digest-calendar {
+   background: var(--entry);
+   border-radius: 0.5rem;
+   padding: 2rem;
+   max-width: 320px;
+   margin: 0 auto 2rem auto;
+}
+
+.calendar-header {
+   display: grid;
+   grid-template-columns: auto 1fr auto;
+   align-items: center;
+   gap: 1rem;
+   margin-bottom: 2rem;
+   color: var(--primary);
+}
+
+#calendar-title {
+   color: var(--primary);
+   font-size: 1.2rem;
+   font-weight: 500;
+   text-align: center;
+}
+.calendar-grid {
+   display: grid;
+   grid-template-columns: repeat(7, minmax(36px, 1fr));
+   gap: 0.25rem;
+   text-align: center;
+}
+
+.weekday {
+   padding: 0.25rem;
+   font-size: 0.75rem;
+   text-transform: uppercase;
+   white-space: nowrap;
+}
+
+.day {
+   aspect-ratio: 1;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   font-size: 0.875rem;
+   border-radius: 0.25rem;
+   padding: 0.25rem;
+   min-width: 36px;
+   min-height: 36px;
+}
+
+.day.has-digest {
+   background: var(--tertiary);
+   color: var(--primary);
+   cursor: pointer;
+}
+
+.day.has-digest:hover {
+   background: var(--code-bg);
+}
+
+.day.selected {
+   background: var(--code-bg);
+   color: var(--primary);
+   font-weight: 500;
+}
+
+.nav-btn {
+   color: var(--secondary);
+   background: none;
+   border: none;
+   cursor: pointer;
+   padding: 0.5rem;
+   border-radius: 0.25rem;
+}
+
+.nav-btn:hover {
+   background: var(--tertiary);
+}
+
+.calendar-footer {
+   margin-top: 1.5rem;
+   color: var(--secondary);
+   font-size: 0.75rem;
+   text-align: center;
+}
+
+.digest-preview {
+   margin-top: 2rem;
+   padding: 1.5rem;
+   border-radius: 0.5rem;
+   background: var(--entry);
+}
+
+.digest-preview-title {
+   color: var(--primary);
+   margin-bottom: 1rem;
+}
+
+.digest-preview-content {
+   color: var(--secondary);
+   line-height: 1.6;
+}
+` }}
+
+<style>{{ $style | safeCSS }}</style>
+
+{{ $digestData := slice }}
+{{ range (where .Site.RegularPages "Section" "post") }}
+    {{ $digest := dict
+        "date" (.Date.Format "2006-01-02")
+        "title" .Title
+        "content" .Summary
+        "url" .RelPermalink
+    }}
+    {{ $digestData = $digestData | append $digest }}
+{{ end }}
+
+<script>
+class DigestCalendar {
+    constructor() {
+        this.currentDate = new Date();
+        this.currentMonth = this.currentDate.getMonth();
+        this.currentYear = this.currentDate.getFullYear();
+        this.selectedDate = null;
+
+        // Digest data from Hugo
+        this.digestData = {{ $digestData | jsonify | safeJS }};
+
+        this.months = [
+            "January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"
+        ];
+
+        this.init();
+    }
+
+    init() {
+        this.attachEventListeners();
+        this.renderCalendar();
+    }
+
+    attachEventListeners() {
+        document.getElementById('prev-month').addEventListener('click', () => {
+            this.previousMonth();
+        });
+
+        document.getElementById('next-month').addEventListener('click', () => {
+            this.nextMonth();
+        });
+    }
+
+    getDigestForDate(dateStr) {
+        return this.digestData.find(digest => digest.date === dateStr);
+    }
+
+    hasDigest(day) {
+        const dateStr = this.formatDate(day);
+        return this.getDigestForDate(dateStr) !== undefined;
+    }
+
+    formatDate(day) {
+        return `${this.currentYear}-${String(this.currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    }
+
+    getDaysInMonth(month, year) {
+        return new Date(year, month + 1, 0).getDate();
+    }
+
+    getFirstDayOfMonth(month, year) {
+        return new Date(year, month, 1).getDay();
+    }
+
+    previousMonth() {
+        if (this.currentMonth === 0) {
+            this.currentMonth = 11;
+            this.currentYear--;
+        } else {
+            this.currentMonth--;
+        }
+        this.renderCalendar();
+    }
+
+    nextMonth() {
+        if (this.currentMonth === 11) {
+            this.currentMonth = 0;
+            this.currentYear++;
+        } else {
+            this.currentMonth++;
+        }
+        this.renderCalendar();
+    }
+
+    showDigestPreview(digest) {
+        const previewContainer = document.getElementById('digest-preview');
+        const previewTitle = document.getElementById('preview-title');
+        const previewContent = document.getElementById('preview-content');
+
+        if (digest) {
+            previewTitle.textContent = digest.title;
+            // Create temporary div to strip HTML
+            const temp = document.createElement('div');
+            temp.innerHTML = digest.content;
+            // Get text content and remove HTML comments
+            const sanitizedContent = temp.textContent.replace(/<!--[\s\S]*?-->/g, '');
+            previewContent.textContent = sanitizedContent;
+            previewContainer.classList.add('visible');
+
+            // Add a "Read more" link
+            const readMoreLink = document.createElement('a');
+            readMoreLink.href = digest.url;
+            readMoreLink.textContent = 'Read more →';
+            readMoreLink.style.display = 'block';
+            readMoreLink.style.marginTop = '1rem';
+            readMoreLink.style.color = '#60a5fa';
+            previewContent.appendChild(readMoreLink);
+        } else {
+            previewContainer.classList.remove('visible');
+        }
+    }
+
+    renderCalendar() {
+        const daysContainer = document.getElementById('days');
+        const calendarTitle = document.getElementById('calendar-title');
+
+        // Update title
+        calendarTitle.textContent = `${this.months[this.currentMonth]} ${this.currentYear}`;
+
+        // Clear previous days
+        daysContainer.innerHTML = '';
+
+        const daysInMonth = this.getDaysInMonth(this.currentMonth, this.currentYear);
+        const firstDay = this.getFirstDayOfMonth(this.currentMonth, this.currentYear);
+
+        // Add empty cells for days before the first day of the month
+        for (let i = 0; i < firstDay; i++) {
+            const emptyDay = document.createElement('div');
+            emptyDay.className = 'day';
+            daysContainer.appendChild(emptyDay);
+        }
+
+        // Add the days of the month
+        for (let day = 1; day <= daysInMonth; day++) {
+            const dayElement = document.createElement('div');
+            dayElement.className = 'day';
+            const dateStr = this.formatDate(day);
+
+            if (this.hasDigest(day)) {
+                dayElement.className += ' has-digest';
+                if (dateStr === this.selectedDate) {
+                    dayElement.className += ' selected';
+                }
+
+                dayElement.addEventListener('click', () => {
+                    // Remove previous selection
+                    const prevSelected = document.querySelector('.day.selected');
+                    if (prevSelected) {
+                        prevSelected.classList.remove('selected');
+                    }
+
+                    // Add new selection
+                    dayElement.classList.add('selected');
+                    this.selectedDate = dateStr;
+
+                    // Show digest preview
+                    const digest = this.getDigestForDate(dateStr);
+                    this.showDigestPreview(digest);
+                });
+            }
+
+            dayElement.textContent = day;
+            daysContainer.appendChild(dayElement);
+        }
+
+        // Clear preview when changing months
+        if (this.selectedDate) {
+            const currentMonthStr = this.formatDate(1).substring(0, 7);
+            if (!this.selectedDate.startsWith(currentMonthStr)) {
+                this.selectedDate = null;
+                this.showDigestPreview(null);
+            }
+        }
+    }
+}
+
+// Initialize calendar when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    new DigestCalendar();
+});
+</script>
+{{ end }}
