@@ -24,7 +24,7 @@
         if (new_member !== null && hash !== null) {
             const json = JSON.stringify({'new_member': new_member, 'hash': hash})
             fetch(
-                'https://cookies.your-amicus.app/sg-law-cookies-func/email_support/add_member', {
+                'https://cookies.zeeker.sg/sg-law-cookies-func/email_support/add_member', {
                     method: 'POST',
                     body: json,
                     headers: {
@@ -37,12 +37,12 @@
                         'You will now receive our emails. A email to confirm has been sent.'
                 } else {
                     document.getElementById('subscribeResult').innerHTML = 'An error occurred. Please try again ' +
-                        'later or <a href="mailto: cookies@your-amicus.app">email me</a> to get some support.'
+                        'later or <a href="mailto: cookies@zeeker.sg">email me</a> to get some support.'
                 }
             })
         } else {
             document.getElementById('subscribeResult').innerHTML = 'Some of the required information is not provided. ' +
-                "Did you click on the right link? " + '<a href="mailto: cookies@your-amicus.app">Or email me</a> to ' +
+                "Did you click on the right link? " + '<a href="mailto: cookies@zeeker.sg">Or email me</a> to ' +
                 'get some support.'
         }
     }

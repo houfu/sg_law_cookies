@@ -1,6 +1,6 @@
-baseURL = 'https://cookies.your-amicus.app/'
+baseURL = 'https://cookies.zeeker.sg/'
 languageCode = 'en-us'
-title = 'SG Law Cookies by Your Amicus'
+title = 'SG Law Cookies by Zeeker'
 theme = 'PaperMod'
 copyright = 'This work is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License.'
 ignoreLogs = ['warning-goldmark-raw-html']

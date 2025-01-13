@@ -178,7 +178,7 @@ def get_summaries(articles: list[ScrapedArticle]):
         day_messages.append(llm_message_prompt.format(summary=result.summary))
 
         # requests.post(
-        #     "https://cookies.your-amicus.app/sg-law-cookies-func/zeeker_support/new_newsarticle",
+        #     "https://cookies.zeeker.sg/sg-law-cookies-func/zeeker_support/new_newsarticle",
         #     json={"content": result.model_dump_json()},
         #     headers={"Content-Type": "application/json"},
         # )
@@ -239,13 +239,13 @@ def main():
         )
 
     new_cookie = SGLawCookie(
-        resource_url=f"https://cookies.your-amicus.app/post/{scrape_date.strftime('%d-%B-%Y').lower()}/",
+        resource_url=f"https://cookies.zeeker.sg/post/{scrape_date.strftime('%d-%B-%Y').lower()}/",
         cookie_content=content,
         published_date=datetime.date.today(),
     )
 
     requests.post(
-        "https://cookies.your-amicus.app/sg-law-cookies-func/zeeker_support/new_cookie",
+        "https://cookies.zeeker.sg/sg-law-cookies-func/zeeker_support/new_cookie",
         json={"content": new_cookie.model_dump_json()},
         headers={"Content-Type": "application/json"},
     )
@@ -262,7 +262,7 @@ def main():
     )
     title = f"SG Law Cookies ({scrape_date.strftime('%d %B %Y')})"
     response_email = requests.post(
-        "https://cookies.your-amicus.app/sg-law-cookies-func/email_support/send_newsletter",
+        "https://cookies.zeeker.sg/sg-law-cookies-func/email_support/send_newsletter",
         json={"content_html": content_html, "context_text": content, "title": title},
         headers={"Content-Type": "application/json"},
     )

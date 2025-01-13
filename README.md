@@ -1,7 +1,7 @@
 # SG Law Cookies
 ![Badge to show the website is updated daily](https://github.com/houfu/sg_law_cookies/actions/workflows/main.yml/badge.svg)
 
-https://cookies.your-amicus.app
+https://cookies.zeeker.sg
 
 Tiny bite sized updates on Singapore law for your digest.
 
