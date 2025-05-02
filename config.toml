@@ -1,0 +1,35 @@
+baseURL = 'https://cookies.zeeker.sg/'
+languageCode = 'en-us'
+title = 'SG Law Cookies by Zeeker'
+theme = 'PaperMod'
+copyright = 'This work is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License.'
+ignoreLogs = ['warning-goldmark-raw-html']
+
+
+[outputs]
+home = ["HTML", "RSS", "JSON"]
+
+[[menu.main]]
+identifier = "post"
+name = "Digests"
+url = "/post/"
+
+[[menu.main]]
+identifier = "search"
+name = "Search"
+url = "/search/"
+
+[[menu.main]]
+identifier = "privacy"
+name = "Privacy Policy"
+url = "/privacy/"
+
+[[menu.main]]
+identifier = "calendar"
+name = "Calendar"
+url = "/calendar/"
+
+[params]
+ShowShareButtons = true
+ShowPostNavLinks = true
+images = ["repository-open-graph-template.png"]
