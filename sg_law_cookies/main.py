@@ -227,7 +227,7 @@ def main():
 
     blog_template = env.get_template("blog_post.jinja2")
     with open(
-        f'site/content/post/{scrape_date.strftime("%d-%B-%Y")}.md', mode="x"
+        f'content/post/{scrape_date.strftime("%d-%B-%Y")}.md', mode="x"
     ) as file:
         file.write(
             blog_template.render(
