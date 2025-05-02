@@ -242,3 +242,7 @@ hugo.linux
 
 # Temporary lock file while building
 /.hugo_build.lock
+/public/
+/resources/_gen/
+/assets/jsconfig.json
+/hugo_stats.json
