@@ -3,13 +3,7 @@ import datetime
 import requests
 from bs4 import BeautifulSoup
 from jinja2 import Environment, PackageLoader
-from langchain.prompts import (
-    SystemMessagePromptTemplate,
-    HumanMessagePromptTemplate,
-    ChatPromptTemplate,
-    AIMessagePromptTemplate,
-)
-from langchain_openai import ChatOpenAI
+from mirascope import BaseMessageParam, llm, prompt_template
 from pydantic import BaseModel, AnyHttpUrl
 
 system_template = """As an AI expert in legal affairs, your task is to provide concise, yet comprehensive 
@@ -29,7 +23,7 @@ The summaries should not be longer than 100 words, but ensure they efficiently d
 making them beneficial for quick comprehension. The end goal is to help the lawyers understand the crux of the 
 articles without having to read them in their entirety."""
 
-system_message_prompt = SystemMessagePromptTemplate.from_template(system_template)
+system_message_prompt = BaseMessageParam(role="system", content=system_template)
 
 
 class NewsArticle(BaseModel):
@@ -114,11 +108,49 @@ def scrape_news_articles_today(scrape_date: datetime.date) -> list[ScrapedArticl
         ScrapedArticle.from_article(article) for article in soup.find_all("item")
     ]
 
-    result = [article for article in news_articles if check_if_article_should_be_included(article, scrape_date)]
+    result = [
+        article
+        for article in news_articles
+        if check_if_article_should_be_included(article, scrape_date)
+    ]
     print(f"No of articles: {len(result)}")
     return result
 
 
+@llm.call(
+    provider="openai", model="gpt-4.1-mini", temperature=0.4, response_model=NewsArticle
+)
+@prompt_template(
+    """
+    SYSTEM: 
+    As an AI expert in legal affairs, your task is to provide concise, yet comprehensive summaries of legal news 
+    articles for time-constrained attorneys. These summaries should highlight the critical legal aspects, 
+    relevant precedents, and implications of the issues discussed in the articles.
+    
+    Despite their complexity, the summaries should be accessible and digestible, written in an engaging and
+    conversational style. Accuracy and attention to detail are essential, as the readers will be legal professionals who 
+    may use these summaries to inform their practice.
+    
+    ### Instructions: 
+    1. Begin the summary with a brief introduction of the topic of the article.
+    2. Outline the main legal aspects, implications, and precedents highlighted in the article. 
+    3. End the summary with a succinct conclusion or takeaway.
+    
+    The summaries should not be longer than 100 words, but ensure they efficiently deliver the key legal insights,
+    making them beneficial for quick comprehension. The end goal is to help the lawyers understand the crux of the 
+    articles without having to read them in their entirety
+    
+    USER:
+    Article from Singapore Law Watch ({article_date}):
+    Title: {article.title}
+    Category: {article.category}
+
+    Content:
+    {article_content}
+
+    Provide a structured legal analysis following the format above.
+    """
+)
 def get_summary(article: ScrapedArticle) -> NewsArticle:
     r = requests.get(article.source_link)
     soup = BeautifulSoup(r.content, "html5lib")
@@ -127,45 +159,31 @@ def get_summary(article: ScrapedArticle) -> NewsArticle:
         + "\n"
         + "\n".join([p.text for p in soup.article.find_all("p")])
     )
+    article_date = article.date.strftime("%d %B %Y")
 
-    human_template = (
-        """
-        Article from Singapore Law Watch ({date}):
-        Title: {title}
-        Category: {category}
+    return {
+        "computed_fields": {
+            "article_date": article_date,
+            "article_content": article_content,
+        }
+    }
 
-        Content:
-        {article}
 
-        Provide a structured legal analysis following the format above.
-        """
-    )
-    human_message_prompt = HumanMessagePromptTemplate.from_template(human_template)
-    article_summary_prompt = ChatPromptTemplate.from_messages(
-        [system_message_prompt, human_message_prompt]
-    )
-    messages = article_summary_prompt.format_prompt(
-        article=article_content,
-        date=article.date.strftime("%d %B %Y"),
-        title=article.title,
-        category=article.category,
-    ).to_messages()
-    chat = ChatOpenAI(model="gpt-4o-mini", temperature=0.4)
-    summary_response = chat.invoke(messages)
-    return NewsArticle(
-        category=article.category,
-        title=article.title,
-        source_link=article.source_link,
-        author=article.author,
-        date=article.date,
-        summary=summary_response.content,
-        text=article_content,
-    )
+@llm.call(provider="openai", model="gpt-4.1", temperature=0.8)
+@prompt_template(
+    """
+    SYSTEM:
+    As an expert poet, your challenge is to craft a succinct yet vivid poem of no more than six lines.
+    Your poem should encapsulate the essence of the news summaries provided below.
+
+    USER:
+    {text}
+    """
+)
+def get_day_summary(text: str): ...
 
 
 def get_summaries(articles: list[ScrapedArticle]):
-    llm_template = "Here is a summary: \n\n {summary}"
-    llm_message_prompt = AIMessagePromptTemplate.from_template(llm_template)
 
     day_messages = [] + system_message_prompt.format_messages()
     summaries = []
@@ -175,7 +193,7 @@ def get_summaries(articles: list[ScrapedArticle]):
 
         summaries.append((result.summary, article.source_link))
 
-        day_messages.append(llm_message_prompt.format(summary=result.summary))
+        day_messages.append(f"Here is a summary: \n\n {result.summary}\n\n")
 
         # requests.post(
         #     "https://cookies.zeeker.sg/sg-law-cookies-func/zeeker_support/new_newsarticle",
@@ -183,27 +201,7 @@ def get_summaries(articles: list[ScrapedArticle]):
         #     headers={"Content-Type": "application/json"},
         # )
 
-    day_summary_template = """As an expert poet, your challenge is to craft a succinct yet vivid poem of no more than 
-    six lines. This poem should encapsulate the essence of the multiple news summaries previously provided.
-
-### Your Toolkit:
-- Start with clear instructions.
-- Make use of descriptive language and powerful imagery to keep your reader engaged.
-- Experiment with various poetic techniques such as alliteration, rhyme or metaphor.
-- Your primary goal is to create a snapshot of the current world scenario through your verse.
-
-Example:
-
-"In the spins of world affairs, where facts unfurl.<br> 
-Through winds of change, the news summary swirls..."
-        """
-    day_summary_prompt = HumanMessagePromptTemplate.from_template(day_summary_template)
-
-    day_messages = day_messages + day_summary_prompt.format_messages()
-
-    chat = ChatOpenAI(model="gpt-4o", temperature=0.1)
-
-    day_summary = chat.invoke(day_messages)
+    day_summary: llm.CallResponse = get_day_summary("\n".join(day_messages))
 
     return summaries, day_summary.content.splitlines()
 
@@ -226,9 +224,7 @@ def main():
     print(content)
 
     blog_template = env.get_template("blog_post.jinja2")
-    with open(
-        f'content/post/{scrape_date.strftime("%d-%B-%Y")}.md', mode="x"
-    ) as file:
+    with open(f'content/post/{scrape_date.strftime("%d-%B-%Y")}.md', mode="x") as file:
         file.write(
             blog_template.render(
                 today=scrape_date,
